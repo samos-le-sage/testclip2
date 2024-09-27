@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diffusion Aléatoire de Clips Twitch</title>
+    <link href="https://fonts.googleapis.com/css2?family=Pirata+One&display=swap" rel="stylesheet"> <!-- Lien vers la police -->
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #000;
+            color: #fff;
+            position: relative;
+        }
+        video {
+            width: 80%;
+            max-width: 800px;
+            opacity: 1;
+            transition: opacity 1s ease;
+        }
+        #clipTitle {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 36px;
+            text-align: center;
+            font-family: 'Pirata One', cursive; /* Application de la police */
+            color: white;
+            text-shadow: 2px 2px 0px black; /* Contour noir */
+        }
+        #timer {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            font-size: 20px;
+            font-family: 'Pirata One', cursive; /* Application de la police */
+            color: white;
+            text-shadow: 2px 2px 0px black; /* Contour noir */
+        }
+        #logo {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 100px;
+        }
+    </style>
+</head>
+<body>
+    <img id="logo" src="https://i.ibb.co/dmghmxG/logo-samos.png" alt="Logo Samos">
+    <div id="clipTitle">Clips Twitch Aléatoires</div>
+    <video id="clipPlayer" autoplay playsinline>
+        <source id="clipSource" src="" type="video/mp4">
+        Votre navigateur ne supporte pas la vidéo.
+    </video>
+    <div id="timer">60</div>
+
+    <script>
+        const clips = [
+            'https://clips-media-assets2.twitch.tv/aJUwEXSCBMhwZmAhLsChsg/AT-cm%7CaJUwEXSCBMhwZmAhLsChsg.mp4',
+            'https://clips-media-assets2.twitch.tv/4q3FGz0MQ2rXsDW2cz45xQ/AT-cm%7C4q3FGz0MQ2rXsDW2cz45xQ.mp4',
+            // Ajoute d'autres clips ici...
+        ];
+
+        const player = document.getElementById('clipPlayer');
+        const source = document.getElementById('clipSource');
+        const timerDisplay = document.getElementById('timer');
+
+        let previousClipIndex = -1; // Index du clip précédent
+        let shuffledClips = [...clips]; // Copie du tableau de clips
+
+        // Fonction pour mélanger le tableau
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function playRandomClip() {
+            shuffle(shuffledClips);
+
+            let randomIndex;
+            do {
+                randomIndex = Math.floor(Math.random() * shuffledClips.length);
+            } while (randomIndex === previousClipIndex);
+
+            const selectedClip = shuffledClips[randomIndex];
+            previousClipIndex = randomIndex;
+
+            source.src = selectedClip;
+            player.load();
+
+            player.addEventListener('loadedmetadata', () => {
+                const clipDuration = Math.floor(player.duration);
+                timerDisplay.textContent = clipDuration;
+
+                let timeLeft = clipDuration;
+                const interval = setInterval(() => {
+                    timeLeft--;
+                    timerDisplay.textContent = timeLeft;
+                    if (timeLeft <= 0) {
+                        clearInterval(interval);
+                    }
+                }, 1000);
+            });
+
+            player.play().catch(error => {
+                console.log("Lecture automatique bloquée: ", error);
+                // Si la lecture automatique échoue, joue la vidéo sans son
+                player.muted = true; // On peut essayer de jouer sans son pour contourner le blocage
+                player.play();
+            });
+        }
+
+        player.addEventListener('ended', playRandomClip);
+
+        playRandomClip();
+    </script>
+</body>
+</html>
